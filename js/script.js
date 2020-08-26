@@ -1,3 +1,4 @@
+//  add DOMContentLoaded listener
 const form = document.querySelector("form");
 // Name, Email and Job role fields
 const basicInfoContainer = document.querySelector("fieldset");
@@ -114,25 +115,25 @@ designSelection.addEventListener("change", (e) => {
     colorSelection.removeChild(colors[0]);
   }
   if (selection === "js puns") {
-    // Show shirt colors if any design option is selected
-    shirtColorContainer.hidden = false;
-    colors[0].selected = true;
-    colors[0].hidden = false;
-    colors[1].hidden = false;
-    colors[2].hidden = false;
-    colors[3].hidden = true;
-    colors[4].hidden = true;
-    colors[5].hidden = true;
+    for (let i = 0; i < colors.length; i++) {
+      if (colors[i].textContent.includes("JS Puns")) {
+        shirtColorContainer.hidden = false;
+        colors[i].hidden = false;
+        colors[i].selected = true;
+      } else {
+        colors[i].hidden = true;
+      }
+    }
   } else if (selection === "heart js") {
-    // Show shirt colors if any design option is selected
-    shirtColorContainer.hidden = false;
-    colors[0].hidden = true;
-    colors[1].hidden = true;
-    colors[2].hidden = true;
-    colors[3].selected = true;
-    colors[3].hidden = false;
-    colors[4].hidden = false;
-    colors[5].hidden = false;
+    for (let i = 0; i < colors.length; i++) {
+      if (colors[i].textContent.includes("JS shirt only")) {
+        shirtColorContainer.hidden = false;
+        colors[i].selected = true;
+        colors[i].hidden = false;
+      } else {
+        colors[i].hidden = true;
+      }
+    }
   }
 });
 
@@ -173,21 +174,15 @@ document.querySelector(".activities").addEventListener("change", (e) => {
   totalDisplay.textContent = `Total: $${runningTotal}`;
 });
 
+// Get payment option elements in collection
+const paymentOption = document.querySelectorAll("#payment option");
+// remove option "select method" to select credit card by default
+if (paymentOption[0].value === "select method") {
+  document.getElementById("payment").removeChild(paymentOption[0]);
+}
 // Set event listener on payment option elements
 document.getElementById("payment").addEventListener("change", (e) => {
-  // Get payment option elements in collection
-  const paymentOption = document.querySelectorAll("#payment option");
   const clicked = e.target.value;
-  /*
-   When anything other than "select method"
-   is selected remove "select method" child element
-  */
-  if (
-    clicked !== "select method" &&
-    paymentOption[0].value === "select method"
-  ) {
-    document.getElementById("payment").removeChild(paymentOption[0]);
-  }
   // Hide/Show payment options depending on user click
   if (clicked === "paypal") {
     payPal.hidden = false;
@@ -224,7 +219,7 @@ const emailValidator = () => {
   const userEmail = email.value;
   const atSymbolIndex = userEmail.indexOf("@");
   const lastDotIndex = userEmail.lastIndexOf(".");
-
+  const emailRegex = /^\w+@\w+\.\w{2,3}(\.\w{2,3})?$/;
   // If email does not contain an '@' show an error
   if (userEmail.indexOf("@") === -1 && userEmail.length > 0) {
     emailErrorMessage.textContent = "*Email must contain '@' symbol";
@@ -240,7 +235,11 @@ const emailValidator = () => {
   }
 
   // Check if the format of email is correct
-  if (atSymbolIndex > 1 && lastDotIndex > atSymbolIndex + 1) {
+  if (
+    atSymbolIndex > 1 &&
+    lastDotIndex > atSymbolIndex + 1 &&
+    emailRegex.test(userEmail)
+  ) {
     email.style.border = "thin solid white";
     emailErrorMessage.hidden = true;
     return true;
@@ -380,13 +379,16 @@ form.addEventListener("submit", (e) => {
   if (!activitiesValidator()) {
     e.preventDefault();
   }
-  if (!creditCardValidator()) {
-    e.preventDefault();
-  }
-  if (!zipCodeValidator()) {
-    e.preventDefault();
-  }
-  if (!cvvValidator()) {
-    e.preventDefault();
+  // If credit card is the selected payment option. Run validators
+  if (!creditCard.hidden) {
+    if (!creditCardValidator()) {
+      e.preventDefault();
+    }
+    if (!zipCodeValidator()) {
+      e.preventDefault();
+    }
+    if (!cvvValidator()) {
+      e.preventDefault();
+    }
   }
 });
